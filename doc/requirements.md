@@ -31,10 +31,10 @@ aliases: [Goals]
 
 # My Projects
 
-- project:: laser appointment
+- project:: foo
 - weight:: 2
 - tasks:: 4
-- project:: another_project_name
+- project:: [[bar]]
 - tasks:: 7
 ```
 
@@ -43,12 +43,13 @@ aliases: [Goals]
 #### Daily Notes Format
 Tasks in daily notes should exactly match the project names:
 ```markdown
-- [x] laser appointment
-- [x] another_project_name
+- [x] foo
+- [x] [[bar]]
 ```
 
 ### Visualization
 - Progress bars for each project showing completion percentage using native Obsidian/Dataview progress bars
+- Green progress bars for completed items (100%)
 - Strikethrough for completed projects (100%)
 - Weekly progress visualization with week number (e.g., "2/12") and date range
 - Strikethrough for past weeks
@@ -100,12 +101,6 @@ Tasks in daily notes should exactly match the habit names:
 ```
 
 ## Potential Future Improvements
-- Historical weekly progress tracking
 - Burndown chart visualization
-- Project categories or tags
-- Project deadlines and priority levels
-- More flexible task matching system
-- Dashboard view with multiple visualizations
-- Support for recurring projects
-- Notifications for projects that are behind schedule
+- Burndown completion estimation
 - Support for note links with aliases (e.g., [[Project Name|Alias]])

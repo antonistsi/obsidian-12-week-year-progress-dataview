@@ -1,3 +1,4 @@
+```dataviewjs
 // Get the goals page
 const goalsPage = dv.page("goals");
 
@@ -91,8 +92,18 @@ const dailyNotes = dv.pages('"Daily note"').where(p => {
 
 // Custom progress bar HTML generator
 function createProgressBar(value, max, isComplete) {
-    // Use the native progress element without custom colors
-    return `<progress value="${value}" max="${max}"></progress> ${value}/${max}`;
+    // Calculate percentage
+    const percentage = max > 0 ? Math.round((value / max) * 100) : 0;
+    const percentageText = `${value}/${max} (${percentage}%)`;
+    
+    // For completed items, use a custom HTML structure with green color
+    if (isComplete) {
+        // Create a div with green background to represent a completed progress bar
+        return `${percentageText} <div style="display: inline-block; width: 200px; height: 10px; background-color: #4CAF50; border-radius: 5px;"></div>`;
+    } else {
+        // Use the default progress element for incomplete items
+        return `${percentageText} <progress value="${value}" max="${max}"></progress>`;
+    }
 }
 
 // Extract goals from the list items
@@ -215,12 +226,30 @@ if (goalsPage.file && goalsPage.file.lists) {
         for (const note of dailyNotes) {
             if (!note.file.tasks) continue;
             
-            // Look for exact matches to the project name (without brackets for comparison)
+            // Look for exact matches to the project name (handling note links in tasks)
             const completedTasks = note.file.tasks.filter(t => {
-                // Check if the task is completed and the text is exactly the project name
-                // after removing any checkbox markers and trimming whitespace
+                // Check if the task is completed
+                if (!t.completed) return false;
+                
+                // Remove checkbox markers and trim whitespace
                 const taskText = t.text.replace(/^\s*\[x\]\s*/, '').trim();
-                return t.completed && taskText === project.name;
+                
+                // Handle note links in task text
+                let cleanedTaskText = taskText;
+                if (taskText.includes("[[") && taskText.includes("]]")) {
+                    const linkMatch = taskText.match(/\[\[(.*?)\]\]/);
+                    if (linkMatch) {
+                        const linkContent = linkMatch[1];
+                        // Handle potential pipe notation inside the link
+                        if (linkContent.includes("|")) {
+                            cleanedTaskText = linkContent.split("|").pop().trim();
+                        } else {
+                            cleanedTaskText = linkContent.trim();
+                        }
+                    }
+                }
+                
+                return cleanedTaskText === project.name;
             });
             
             completedCount += completedTasks.length;
@@ -231,11 +260,9 @@ if (goalsPage.file && goalsPage.file.lists) {
         totalCompletedStepsAllGoals += weightedCompletedCount;
         
         // Calculate percentage (handle division by zero)
-        let percentageText = "0%";
         let percentage = 0;
         if (weightedTasks > 0) {
             percentage = Math.round((weightedCompletedCount / weightedTasks) * 100);
-            percentageText = `${percentage}%`;
         }
         
         // Create progress bar HTML
@@ -250,12 +277,12 @@ if (goalsPage.file && goalsPage.file.lists) {
         }
         
         // Add to all goals array
-        allGoals.push([displayName, `${project.tasks} (weight: ${project.weight})`, percentageText, progressBar]);
+        allGoals.push([displayName, `${project.tasks} (x${project.weight})`, progressBar]);
     }
     
     // Display all projects in a single table
     dv.header(2, "Project Progress");
-    dv.table(["Project", "Total Tasks", "Progress", "-"], allGoals);
+    dv.table(["Project", "Tasks", "Progress"], allGoals);
     
     // Weekly progress calculation
     dv.header(2, "Weekly Progress");
@@ -306,12 +333,28 @@ if (goalsPage.file && goalsPage.file.lists) {
                 // Check if note is from this week
                 if (noteDate >= currentWeekStart && noteDate <= weekEnd) {
                     if (note.file.tasks) {
-                        // Only count completed tasks that match our project names
+                        // Only count completed tasks that match our project names (handling note links)
                         const completedTasks = note.file.tasks.filter(t => {
                             if (!t.completed) return false;
                             
                             const taskText = t.text.replace(/^\s*\[x\]\s*/, '').trim();
-                            return goalNames.includes(taskText);
+                            
+                            // Handle note links in task text
+                            let cleanedTaskText = taskText;
+                            if (taskText.includes("[[") && taskText.includes("]]")) {
+                                const linkMatch = taskText.match(/\[\[(.*?)\]\]/);
+                                if (linkMatch) {
+                                    const linkContent = linkMatch[1];
+                                    // Handle potential pipe notation inside the link
+                                    if (linkContent.includes("|")) {
+                                        cleanedTaskText = linkContent.split("|").pop().trim();
+                                    } else {
+                                        cleanedTaskText = linkContent.trim();
+                                    }
+                                }
+                            }
+                            
+                            return goalNames.includes(cleanedTaskText);
                         });
                         
                         completedStepsThisWeek += completedTasks.length;
@@ -340,7 +383,7 @@ if (goalsPage.file && goalsPage.file.lists) {
         const weekIndex = `${weekCounter}/${totalWeeks}`;
         
         // Add to weeks array
-        allWeeks.push([weekIndex, formattedWeekLabel, `${weekScorePercentage}%`, weekProgressBar]);
+        allWeeks.push([weekIndex, formattedWeekLabel, weekProgressBar]);
         
         // Increment week counter
         weekCounter++;
@@ -364,7 +407,7 @@ if (goalsPage.file && goalsPage.file.lists) {
     
     // Display weekly progress with all weeks
     dv.table(
-        ["Week", "Days", "Progress", "-"],
+        ["Week", "Days", "Progress"],
         allWeeks
     );
     
@@ -416,12 +459,30 @@ if (goalsPage.file && goalsPage.file.lists) {
                         // Check if note is from this week
                         if (noteDate >= currentWeekStart && noteDate <= weekEnd) {
                             if (note.file.tasks) {
-                                // Look for exact matches to the habit name (without brackets for comparison)
+                                // Look for exact matches to the habit name (handling note links)
                                 const completedTasks = note.file.tasks.filter(t => {
-                                    // Check if the task is completed and the text is exactly the habit name
-                                    // after removing any checkbox markers and trimming whitespace
+                                    // Check if the task is completed
+                                    if (!t.completed) return false;
+                                    
+                                    // Remove checkbox markers and trim whitespace
                                     const taskText = t.text.replace(/^\s*\[x\]\s*/, '').trim();
-                                    return t.completed && taskText === habit.name;
+                                    
+                                    // Handle note links in task text
+                                    let cleanedTaskText = taskText;
+                                    if (taskText.includes("[[") && taskText.includes("]]")) {
+                                        const linkMatch = taskText.match(/\[\[(.*?)\]\]/);
+                                        if (linkMatch) {
+                                            const linkContent = linkMatch[1];
+                                            // Handle potential pipe notation inside the link
+                                            if (linkContent.includes("|")) {
+                                                cleanedTaskText = linkContent.split("|").pop().trim();
+                                            } else {
+                                                cleanedTaskText = linkContent.trim();
+                                            }
+                                        }
+                                    }
+                                    
+                                    return cleanedTaskText === habit.name;
                                 });
                                 
                                 completedCount += completedTasks.length;
@@ -447,7 +508,6 @@ if (goalsPage.file && goalsPage.file.lists) {
                     weekIndex, 
                     formattedWeekLabel, 
                     habit.originalFormat,
-                    `${consistencyPercentage}%`, 
                     progressBar
                 ]);
             }
@@ -461,7 +521,7 @@ if (goalsPage.file && goalsPage.file.lists) {
         
         // Display habit scorecard
         dv.table(
-            ["Week", "Days", "Habit", "Consistency", "-"],
+            ["Week", "Days", "Habit", "Consistency"],
             habitScorecard
         );
         
@@ -501,10 +561,30 @@ if (goalsPage.file && goalsPage.file.lists) {
                         // Check if note is from this week
                         if (noteDate >= weekStartDate && noteDate <= weekEndDate) {
                             if (note.file.tasks) {
-                                // Look for exact matches to the habit name (without brackets for comparison)
+                                // Look for exact matches to the habit name (handling note links)
                                 const completedTasks = note.file.tasks.filter(t => {
+                                    // Check if the task is completed
+                                    if (!t.completed) return false;
+                                    
+                                    // Remove checkbox markers and trim whitespace
                                     const taskText = t.text.replace(/^\s*\[x\]\s*/, '').trim();
-                                    return t.completed && taskText === habit.name;
+                                    
+                                    // Handle note links in task text
+                                    let cleanedTaskText = taskText;
+                                    if (taskText.includes("[[") && taskText.includes("]]")) {
+                                        const linkMatch = taskText.match(/\[\[(.*?)\]\]/);
+                                        if (linkMatch) {
+                                            const linkContent = linkMatch[1];
+                                            // Handle potential pipe notation inside the link
+                                            if (linkContent.includes("|")) {
+                                                cleanedTaskText = linkContent.split("|").pop().trim();
+                                            } else {
+                                                cleanedTaskText = linkContent.trim();
+                                            }
+                                        }
+                                    }
+                                    
+                                    return cleanedTaskText === habit.name;
                                 });
                                 
                                 weeklyCompletedCount += completedTasks.length;
@@ -533,9 +613,6 @@ if (goalsPage.file && goalsPage.file.lists) {
                 consistencyPercentage = Math.round((totalCompletedCount / totalWeeklyTarget) * 100);
             }
             
-            // Format the consistency average text
-            const consistencyText = `${averageCount.toFixed(1)} / ${habit.weekly} (${consistencyPercentage}%)`;
-            
             // Create progress bar HTML
             const isComplete = consistencyPercentage >= 100;
             const progressBar = createProgressBar(totalCompletedCount, totalWeeklyTarget, isComplete);
@@ -543,14 +620,13 @@ if (goalsPage.file && goalsPage.file.lists) {
             // Add to overall habit progress array
             overallHabitProgress.push([
                 habit.originalFormat,
-                consistencyText,
                 progressBar
             ]);
         }
         
         // Display overall habit progress
         dv.table(
-            ["Habit", "Consistency average", "-"],
+            ["Habit", "Consistency"],
             overallHabitProgress
         );
         
@@ -566,3 +642,5 @@ if (goalsPage.file && goalsPage.file.lists) {
 } else {
     dv.paragraph("No goals found in the expected format.");
 }
+
+```
