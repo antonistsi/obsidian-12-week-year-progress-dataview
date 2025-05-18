@@ -56,14 +56,18 @@ A DataviewJS script for Obsidian that helps users track progress on multiple pro
 
 ### Daily Notes Format
 
-Completed tasks in daily notes matching the project names are counted:
+Completed tasks in daily notes matching the project names are counted. Tasks can be an exact match or can include additional text after the project/habit name:
 
 ```markdown
 - [x] [[foo]]
 - [x] bar
 - [x] meditate
 - [x] gym
+- [x] foo additional notes
+- [x] meditate for 20 minutes
 ```
+
+The script will recognize both exact matches and tasks with additional text after the project/habit name.
 
 ## Output
 

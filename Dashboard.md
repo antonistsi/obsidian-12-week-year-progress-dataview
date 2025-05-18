@@ -249,7 +249,8 @@ if (goalsPage.file && goalsPage.file.lists) {
                     }
                 }
                 
-                return cleanedTaskText === project.name;
+                // Allow for tasks that start with the project name but may have additional text after it
+                return cleanedTaskText === project.name || cleanedTaskText.startsWith(project.name + " ");
             });
             
             completedCount += completedTasks.length;
@@ -354,7 +355,10 @@ if (goalsPage.file && goalsPage.file.lists) {
                                 }
                             }
                             
-                            return goalNames.includes(cleanedTaskText);
+                            // Check if the task exactly matches a project name or starts with a project name followed by a space
+                            return goalNames.some(name => 
+                                cleanedTaskText === name || cleanedTaskText.startsWith(name + " ")
+                            );
                         });
                         
                         completedStepsThisWeek += completedTasks.length;
@@ -482,7 +486,8 @@ if (goalsPage.file && goalsPage.file.lists) {
                                         }
                                     }
                                     
-                                    return cleanedTaskText === habit.name;
+                                    // Allow for tasks that start with the habit name but may have additional text after it
+                                    return cleanedTaskText === habit.name || cleanedTaskText.startsWith(habit.name + " ");
                                 });
                                 
                                 completedCount += completedTasks.length;
@@ -584,7 +589,8 @@ if (goalsPage.file && goalsPage.file.lists) {
                                         }
                                     }
                                     
-                                    return cleanedTaskText === habit.name;
+                                    // Allow for tasks that start with the habit name but may have additional text after it
+                                    return cleanedTaskText === habit.name || cleanedTaskText.startsWith(habit.name + " ");
                                 });
                                 
                                 weeklyCompletedCount += completedTasks.length;

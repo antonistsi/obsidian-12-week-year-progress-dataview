@@ -41,10 +41,12 @@ aliases: [Goals]
 
 
 #### Daily Notes Format
-Tasks in daily notes should exactly match the project names:
+Tasks in daily notes can either exactly match the project names or include additional text after the project name:
 ```markdown
 - [x] foo
 - [x] [[bar]]
+- [x] foo with additional notes
+- [x] bar completed today
 ```
 
 ### Visualization
@@ -94,10 +96,12 @@ The script will display an overall habit progress table with:
 ```
 
 #### Daily Notes Format for Habits
-Tasks in daily notes should exactly match the habit names:
+Tasks in daily notes can either exactly match the habit names or include additional text after the habit name:
 ```markdown
 - [x] meditate
 - [x] gym
+- [x] meditate for 15 minutes
+- [x] gym leg day
 ```
 
 ## Potential Future Improvements
